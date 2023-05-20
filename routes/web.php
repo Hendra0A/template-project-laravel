@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -14,17 +15,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::redirect('/', '/login');
+
 Route::get('/admin', function () {
-    return 'hi admin';
-})->middleware('role:admin');
+    return view('pages.admin.dashboard.index');
+})->middleware('role:admin')->name('admin.dashboard');
 
 Route::get('/user', function () {
     return 'hi user';
-})->middleware('role:user');
+})->middleware('role:user')->name('user.dashboard');
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// redirect user
+Route::get('/redirect-user', [LoginController::class, 'redirectUser'])->middleware('role:admin,user');
 
 Auth::routes();
 
