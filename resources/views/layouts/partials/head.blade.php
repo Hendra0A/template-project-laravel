@@ -6,14 +6,21 @@
 
 <title>{{ config('app.name', 'Laravel') }}</title>
 
-{{-- custom css --}}
-<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-
 {{-- bootstrap 5.2.3 --}}
-{{-- <link rel="stylesheet" href="{{ asset('assets/css/bootstrap/bootstrap.css') }}"> --}}
+<link rel="stylesheet" href="{{ asset('assets/css/bootstrap/bootstrap.css') }}">
 
 {{-- font-awesome 6.4.0 --}}
 <link rel="stylesheet" href="{{ asset('assets/css/font-awesome/css/all.css') }}">
 
+{{-- sbadmin --}}
+<link href="{{ asset('assets/css/sbadmin/sbadmin.css') }}" rel="stylesheet" />
+
+{{-- datatables --}}
+<link rel="stylesheet" href="//cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+
+{{-- custom css --}}
+<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+
 <!-- Scripts -->
-@vite(['resources/sass/app.scss', 'resources/js/app.js'])
+{{-- @vite(['resources/sass/app.scss', 'resources/js/app.js']) --}}
+{{-- @vite([]) --}}

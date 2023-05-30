@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -17,17 +18,36 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
 
-Route::get('/admin', function () {
-    return view('pages.admin.dashboard.index');
-})->middleware('role:admin')->name('admin.dashboard');
+// Route harus login terlebih dahulu, jika tidak login maka akan redirect ke /login
+Route::middleware('auth')->group(function () {
 
-Route::get('/user', function () {
-    return 'hi user';
-})->middleware('role:user')->name('user.dashboard');
+    // Route admin
+    Route::prefix('admin')->name('admin.')->middleware(['auth' => 'role:admin'])->group(function () {
+        Route::get('', function () {
+            return view('pages.admin.dashboard.index');
+        })->name('dashboard');
 
-// redirect user
-Route::get('/redirect-user', [LoginController::class, 'redirectUser'])->middleware('role:admin,user');
+        Route::get('components', function () {
+            return view('pages.admin.components.index');
+        })->name('components');
 
+        Route::get('products', function () {
+            return view('pages.admin.products.index');
+        })->name('products');
+        Route::resource('ajax/products', ProductController::class);
+    });
+
+    // route user
+    Route::get('user', function () {
+        return 'hi user';
+    })->middleware('role:user')->name('user.dashboard');
+
+
+    // route redirect-user jika admin maka ke route admin dan jika user maka ke route user
+    Route::get('redirect-user', [LoginController::class, 'redirectUser'])->middleware('role:admin,user');
+});
+
+// Auth routes
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
