@@ -1,45 +1,108 @@
-import { capitalize } from "./general-functions.js";
+const modal = new bootstrap.Modal($("#modalAction"));
 
-export function saveData(id = "") {
-    let url, type, typeName;
-    if (id == "") {
-        url = "ajax/products";
-        type = "POST";
-        typeName = "add";
-    } else {
-        url = "ajax/products/" + id;
-        type = "PUT";
-        typeName = "edit";
+export function crud(name, tableId, columns, columnDefs) {
+    $(".add_button").on("click", function () {
+        $.ajax({
+            url: "ajax/" + name + "/create",
+            type: "GET",
+            success: function (res) {
+                $("#modalAction").find(".modal-dialog").html(res);
+                modal.show();
+                store();
+            },
+        });
+    });
+
+    $("#" + tableId).on("click", ".action", function () {
+        let data = $(this).data();
+        let id = data.id;
+        let jenis = data.jenis;
+
+        if (jenis == "edit") {
+            $.ajax({
+                url: "ajax/" + name + "/" + id + "/edit",
+                type: "GET",
+                success: function (res) {
+                    $("#modalAction").find(".modal-dialog").html(res);
+                    modal.show();
+                    store(id);
+                },
+            });
+        } else if (jenis == "delete") {
+            Swal.fire({
+                title: "Apakah kamu yakin ingin menghapus data ini?",
+                text: "Kamu tidak dapat lagi mengembalikan data ini!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Ya, hapus!",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: "ajax/" + name + "/" + id,
+                        type: "DELETE",
+                        success: function (res) {
+                            Swal.fire("Deleted!", res.success, "success");
+                            $("#" + tableId)
+                                .DataTable()
+                                .ajax.reload();
+                        },
+                    });
+                }
+            });
+        }
+    });
+
+    function store() {
+        $("#formAction").on("submit", function (e) {
+            e.preventDefault();
+
+            const url = this.getAttribute("action");
+
+            const formData = new FormData(this);
+
+            $.ajax({
+                url,
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    modal.hide();
+                    Swal.fire({
+                        title: "Success",
+                        text: res.success,
+                        icon: "success",
+                        confirmButtonText: "Ok",
+                    });
+                    $("#" + tableId)
+                        .DataTable()
+                        .ajax.reload();
+                },
+                error: function (res) {
+                    let errors = res.responseJSON?.errors;
+                    $(".is-invalid").removeClass("is-invalid");
+                    $(".invalid-feedback").html("");
+                    $.each(errors, function (key, value) {
+                        $("#" + key).addClass("is-invalid");
+                        $("#" + key)
+                            .next()
+                            .html(value);
+                    });
+                },
+            });
+        });
     }
-    $.ajax({
-        url: url,
-        type: type,
-        data: {
-            product_name: $("#product_name_" + typeName).val(),
-            product_description: $("#product_description_" + typeName).val(),
+
+    $("#" + tableId).DataTable({
+        processing: true,
+        serverside: true,
+        ajax: {
+            url: "ajax/products",
+            type: "GET",
         },
-        success: function (response) {
-            if (response.errors) {
-                $(".is-invalid").removeClass("is-invalid");
-                $(".invalid-feedback").html("");
-                $.each(response.errors, function (key, value) {
-                    $("#" + key + "_" + typeName).addClass("is-invalid");
-                    $("#" + key + "_" + typeName)
-                        .next()
-                        .html(value);
-                });
-            } else {
-                $("#modal" + capitalize(typeName) + "Product").modal("hide");
-                $(".modal-backdrop").remove();
-                $("#form_" + typeName + "_product")[0].reset();
-                Swal.fire({
-                    title: "Success",
-                    text: response.success,
-                    icon: "success",
-                    confirmButtonText: "Ok",
-                });
-            }
-            $("#myTable").DataTable().ajax.reload();
-        },
+        columns: columns,
+        columnDefs: columnDefs,
     });
 }

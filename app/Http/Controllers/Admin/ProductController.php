@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ProductRequest;
 use App\Models\Admin\Product;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProductController extends Controller
@@ -16,65 +15,50 @@ class ProductController extends Controller
         return DataTables::of($data)
             ->addIndexColumn()
             ->addColumn('aksi', function ($data) {
-                return view('pages.admin.products.components-table.button')->with('data', $data);
+                return view('components.components-ajax-yajradatatables.component_action')->with('data', $data);
             })
             ->make(true);
     }
 
-    public function store(Request $request)
+    public function create()
     {
-        $validasi = Validator::make($request->all(), [
-            'product_name' => 'required',
-            'product_description' => 'required'
-        ], [
-            'product_name.required' => 'Nama produk wajib diisi',
-            'product_description.required' => 'Deskripsi produk wajib diisi',
-        ]);
-
-        if ($validasi->fails()) {
-            return response()->json(['errors' => $validasi->errors()]);
-        } else {
-            $data = [
-                'product_name' => $request->product_name,
-                'product_img' => 'admin/product_img/mywebsite.png',
-                'product_description' => $request->product_description,
-            ];
-
-            Product::create($data);
-
-            return response()->json(['success' => 'Berhasil menambah produk']);
-        }
+        return view('pages.admin.products.components-table.modal', ['product' => new Product()]);
     }
 
-    public function edit($id)
+    public function store(ProductRequest $request)
     {
-        $data = Product::find($id);
+        $data = [
+            'product_name' => $request->product_name,
+            'product_img' => 'admin/product_img/mywebsite.png',
+            'product_description' => $request->product_description,
+        ];
 
-        return response()->json(['data' => $data]);
+        Product::create($data);
+
+        return response()->json(['success' => 'Berhasil menambah produk']);
     }
 
-    public function update(Request $request, $id)
+    public function edit(Product $product)
     {
-        $validasi = Validator::make($request->all(), [
-            'product_name' => 'required',
-            'product_description' => 'required'
-        ], [
-            'product_name.required' => 'Nama produk wajib diisi',
-            'product_description.required' => 'Deskripsi produk wajib diisi',
-        ]);
+        return view('pages.admin.products.components-table.modal', compact('product'));
+    }
 
-        if ($validasi->fails()) {
-            return response()->json(['errors' => $validasi->errors()]);
-        } else {
-            $data = [
-                'product_name' => $request->product_name,
-                'product_img' => 'admin/product_img/mywebsite.png',
-                'product_description' => $request->product_description,
-            ];
+    public function update(ProductRequest $request, $id)
+    {
+        $data = [
+            'product_name' => $request->product_name,
+            'product_img' => 'admin/product_img/mywebsite.png',
+            'product_description' => $request->product_description,
+        ];
 
-            Product::find($id)->update($data);
+        Product::find($id)->update($data);
 
-            return response()->json(['success' => 'Berhasil mengubah data produk']);
-        }
+        return response()->json(['success' => 'Berhasil mengubah data produk']);
+    }
+
+    public function destroy(Product $product)
+    {
+        $product->delete();
+        return response()->json(['success' => 'Berhasil menghapus data produk']);
     }
 }
